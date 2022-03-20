@@ -1,0 +1,23 @@
+name: Performance Test against Tags
+on:
+    workflow_dispatch:
+    inputs:
+        startTag:
+            description: 'Tag to begin with'
+            required: true
+            default: '5.9.2'
+            type: string
+        endTag:
+            description: 'Tag to end with'
+            required: false
+            type: string
+            default: '5.8.1'
+
+jobs:
+    determine-tag-range:
+        runs-on: ubuntu-latest
+        steps:
+            - run: |
+                  echo "Start tag selected: ${{ github.event.inputs.startTag"
+                  echo "End Tag selected: ${{ github.event.inputs.endTag"
+                  echo "Environment: $ENVIRONMENT"
