@@ -16,6 +16,8 @@ on:
 jobs:
   determine-tag-range:
     runs-on: ubuntu-latest
+    outputs:
+      taglist: ${{ steps.taglist.outputs.processTags }}
     steps:
       - name: Get the Repo
         uses: actions/checkout@v2
@@ -56,19 +58,37 @@ jobs:
           start="${{ steps.determineDirection.outputs.startWith }}"
           end="${{ steps.determineDirection.outputs.endWith }}"
           additionalTags=$(git tag -l | sed -n "/${start}/,/${end}/p");
-          additionalTags="${additionalTags//'%'/'%25'}"
-          additionalTags="${additionalTags//$'\n'/'%0A'}"
-          additionalTags="${additionalTags//$'\r'/'%0D'}"
+          additionalTags=$(echo "${additionalTags}" | sed '1s/^/[/; $!s/$/,/; $s/$/]/')
+          echo "::notice::Converted multitline to JSONarray: ${additionalTags}"
+          #additionalTags="${additionalTags//'%'/'%25'}"
+          #additionalTags="${additionalTags//$'\n'/'%0A'}"
+          #additionalTags="${additionalTags//$'\r'/'%0D'}"
           echo "::set-output name=processTags::${additionalTags}"
-          echo "additionalTags post processing: ${additionalTags}"
+          #echo "additionalTags post processing: ${additionalTags}"
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
-      - name: activate each tag
-        id: activate-tags
-        run: |
-          #tags="${{ steps.taglist.outputs.tagList }}"
-          while IFS= read -r tag; do
-              echo "::notice::The tag we need to activate is ${tag}"
-          done <<< "${{ steps.taglist.outputs.processTags }}"
 
-          echo "All the tags: ${{ steps.taglist.outputs.processTags }}"
+  build-each-tag:
+    needs: determine-tag-range
+    runs-on: ubuntu-latest
+    name: "Tag builds"
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: ${{ needs.determine-tag-range.outputs }}
+
+    steps:
+      - name: Get the Repo
+        uses: actions/checkout@v2
+      - name: fetch tags
+        run: |
+          git fetch --unshallow --tags
+      - name: does tag exist
+        run: |
+          if [ ! $(git tag -l "${{ matrix.tag }}") ]; then
+            echo "::error::The tag you want to activate does not exist. Verify the tag you've requested - ${{ matrix.tag }} - exists."
+            exit 1
+          else
+            echo "::notice::The tag ${{ matrix.tag }} exists and we can continue"
+          fi
+
 
