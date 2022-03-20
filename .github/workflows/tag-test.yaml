@@ -18,6 +18,6 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - run: |
-                  echo "Start tag selected: ${{ github.event.inputs.startTag"
-                  echo "End Tag selected: ${{ github.event.inputs.endTag"
+                  echo "Start tag selected: ${{ github.event.inputs.startTag }}"
+                  echo "End Tag selected: ${{ github.event.inputs.endTag }}"
                   echo "Environment: $ENVIRONMENT"
