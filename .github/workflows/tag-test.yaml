@@ -57,7 +57,7 @@ jobs:
           end="${{ steps.determineDirection.outputs.endWith }}"
           additionalTags=$(git tag -l | sed -n "/${start}/,/${end}/p");
           echo "list: ${additionalTags}"
-          echo "::set-output name=taglist::${additionalTags}"
+          echo "TAGLIST='${additionalTags}'" >> $GITHUB_ENV
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
       - name: activate each tag
         id: activate-tags
@@ -65,5 +65,5 @@ jobs:
           #tags="${{ steps.taglist.outputs.taglist }}"
           while IFS= read -r tag; do
               echo "::notice::The tag we need to activate is ${tag}"
-          done <<< "${{ steps.taglist.outputs.taglist }}"
+          done <<< "${{ env.TAGLIST }}"
 
