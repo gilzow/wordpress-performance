@@ -62,8 +62,8 @@ jobs:
       - name: activate each tag
         id: activate-tags
         run: |
-          tags="${{ steps.taglist.outputs.taglist }}"
+          #tags="${{ steps.taglist.outputs.taglist }}"
           while IFS= read -r tag; do
               echo "::notice::The tag we need to activate is ${tag}"
-          done <<< "$tags"
+          done <<< "${{ steps.taglist.outputs.taglist }}"
 
