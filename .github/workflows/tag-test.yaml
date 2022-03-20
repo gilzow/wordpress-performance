@@ -56,11 +56,10 @@ jobs:
           start="${{ steps.determineDirection.outputs.startWith }}"
           end="${{ steps.determineDirection.outputs.endWith }}"
           additionalTags=$(git tag -l | sed -n "/${start}/,/${end}/p");
-          echo "list: ${additionalTags}"
           additionalTags="${additionalTags//'%'/'%25'}"
           additionalTags="${additionalTags//$'\n'/'%0A'}"
           additionalTags="${additionalTags//$'\r'/'%0D'}"
-          echo "::set-output name=processTags::${addtionalTags}"
+          echo "::set-output name=processTags::${additionalTags}"
           echo "additionalTags post processing: ${additionalTags}"
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
       - name: activate each tag
