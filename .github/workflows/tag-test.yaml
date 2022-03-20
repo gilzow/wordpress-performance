@@ -75,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: ${{ fromJSON(needs.determine-tag-range.outputs) }}
+        tag: ${{ needs.determine-tag-range.outputs }}
 
     steps:
       - name: Get the Repo
