@@ -59,3 +59,11 @@ jobs:
           echo "list: ${list}"
           echo "::set-output name=taglist::${list}"
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
+      - name: activate each tag
+        id: activate-tags
+        run: |
+          tags="${{ steps.taglist.outputs.taglist }}"
+          while IFS= read -r tag; do
+              echo "::notice::The tag we need to activate is ${tag}"
+          done <<< "$tags"
+
