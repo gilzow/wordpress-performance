@@ -76,7 +76,7 @@ jobs:
       fail-fast: false
       matrix:
         #tag: ${{ needs.determine-tag-range.outputs }}
-      tag: ["5.8.0", "5.8.1", "5.9.0"]
+        tag: ["5.8.0", "5.8.1", "5.9.0"]
 
     steps:
       - name: Get the Repo
