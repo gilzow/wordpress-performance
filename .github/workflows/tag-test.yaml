@@ -18,12 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          if [ ! $(git tag -1 "${{ github.event.inputs.startTag }}" ]; then
+          if [ ! $(git tag -1 "${{ github.event.inputs.startTag }}") ]; then
             echo "::error::The start tag you've requested does not exist. Verify the tag you've requested - ${{ github.event.inputs.startTag }} - exists."
             exit 1
           fi
 
-          if [ ! $(git tag -1 "${{ github.event.inputs.endTag }}" ]; then
+          if [ ! $(git tag -1 "${{ github.event.inputs.endTag }}") ]; then
             echo "::error::The end tag you've requested does not exist. Verify the tag you've requested - ${{ github.event.inputs.startTag }} -  exists."
             exit 1
           fi
