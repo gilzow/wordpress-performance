@@ -68,5 +68,5 @@ jobs:
           #tags="${{ steps.taglist.outputs.tagList }}"
           while IFS= read -r tag; do
               echo "::notice::The tag we need to activate is ${tag}"
-          done <<< "${{ steps.taglist.output.processTags }}"
+          done <<< "${{ steps.taglist.outputs.processTags }}"
 
