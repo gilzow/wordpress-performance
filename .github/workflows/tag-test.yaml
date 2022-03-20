@@ -17,7 +17,10 @@ jobs:
   determine-tag-range:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Get the Repo
+        uses: actions/checkout@v2
+      - name: Verify tags
+        run: |
           if [ ! $(git tag -1 "${{ github.event.inputs.startTag }}") ]; then
             echo "::error::The start tag you've requested does not exist. Verify the tag you've requested - ${{ github.event.inputs.startTag }} - exists."
             exit 1
@@ -27,4 +30,20 @@ jobs:
             echo "::error::The end tag you've requested does not exist. Verify the tag you've requested - ${{ github.event.inputs.startTag }} -  exists."
             exit 1
           fi
+      - name: determine direction
+        run: |
+          begin=$(printf '%s\n%s\n' "${{ github.event.inputs.startTag }}" "${{ github.event.inputs.startTag }}" | sort -V | head -n 1)
+          if [[ "${begin}" == "${{ github.event.inputs.startTag }}" ]]; then
+            start="${{ github.event.inputs.startTag }}"
+            end="${{ github.event.inputs.endTag }}"
+          else
+            start="${{ github.event.inputs.endTag }}"
+            end="${{ github.event.inputs.startTag }}"
+          fi
+          echo "::notice::You told me to start with ${{ github.event.inputs.startTag }}"
+          echo "::notice::I'm going to start with ${start}"
+          echo "::set-output name=startWith::"
+          echo "::notice::You told me to end with ${{ github.event.inputs.endTag }}"
+          echo "::notice::I'm going to end with ${end}"
 
+          #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
