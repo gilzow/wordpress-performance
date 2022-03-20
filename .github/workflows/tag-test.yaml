@@ -70,3 +70,5 @@ jobs:
               echo "::notice::The tag we need to activate is ${tag}"
           done <<< "${{ steps.taglist.outputs.processTags }}"
 
+          echo "All the tags: ${{ steps.taglist.outputs.processTags }}"
+
