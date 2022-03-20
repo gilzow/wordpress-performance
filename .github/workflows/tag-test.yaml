@@ -57,8 +57,9 @@ jobs:
         run: |
           start="${{ steps.determineDirection.outputs.startWith }}"
           end="${{ steps.determineDirection.outputs.endWith }}"
-          additionalTags=$(git tag -l | sed -n "/${start}/,/${end}/p");
-          additionalTags=$(echo "${additionalTags}" | sed '1s/^/["/; $!s/$/","/; $s/$/"]/')
+          #get the list of tags, grab our start and end tags and everything between, convert that to a JSON array
+          additionalTags=$(git tag -l | sed -n "/${start}/,/${end}/p" |  jq -R -s -c 'split("\n")');
+          #additionalTags=$(echo "${additionalTags}" | sed '1s/^/["/; $!s/$/","/; $s/$/"]/')
           echo "::notice::Converted multitline to JSONarray: ${additionalTags}"
           #additionalTags="${additionalTags//'%'/'%25'}"
           #additionalTags="${additionalTags//$'\n'/'%0A'}"
