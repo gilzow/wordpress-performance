@@ -60,7 +60,7 @@ jobs:
           additionalTags="${additionalTags//'%'/'%25'}"
           additionalTags="${additionalTags//$'\n'/'%0A'}"
           additionalTags="${additionalTags//$'\r'/'%0D'}"
-          echo "::setputput name=processTags::${addtionalTags}"
+          echo "::set-output name=processTags::${addtionalTags}"
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
       - name: activate each tag
         id: activate-tags
