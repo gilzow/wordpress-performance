@@ -48,7 +48,7 @@ jobs:
           echo "::set-output name=startWith::${start}"
           echo "::notice::You told me to end with ${{ github.event.inputs.endTag }}"
           echo "::notice::I'm going to end with ${end}"
-          echo"::set-output name=endWith::${end}"
+          echo "::set-output name=endWith::${end}"
 
       - name: get tag list
         id: taglist
