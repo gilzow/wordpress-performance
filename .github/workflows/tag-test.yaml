@@ -22,7 +22,7 @@ jobs:
       - name: Verify tags
         run: |
           allTheTags=$(git tag -l)
-          echo "::set-notice::all the tags: ${allTheTags}"
+          echo "${allTheTags}"
           if [ ! $(git tag -l "${{ github.event.inputs.startTag }}") ]; then
             echo "::error::The start tag you've requested does not exist. Verify the tag you've requested - ${{ github.event.inputs.startTag }} - exists."
             exit 1
