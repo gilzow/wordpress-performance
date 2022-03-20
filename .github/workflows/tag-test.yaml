@@ -34,7 +34,7 @@ jobs:
           fi
       - name: determine direction
         run: |
-          begin=$(printf '%s\n%s\n' "${{ github.event.inputs.startTag }}" "${{ github.event.inputs.startTag }}" | sort -V | head -n 1)
+          begin=$(printf '%s\n%s\n' "${{ github.event.inputs.startTag }}" "${{ github.event.inputs.endTag }}" | sort -V | head -n 1)
           if [[ "${begin}" == "${{ github.event.inputs.startTag }}" ]]; then
             start="${{ github.event.inputs.startTag }}"
             end="${{ github.event.inputs.endTag }}"
