@@ -33,6 +33,7 @@ jobs:
             exit 1
           fi
       - name: determine direction
+        id: determineDirection
         run: |
           begin=$(printf '%s\n%s\n' "${{ github.event.inputs.startTag }}" "${{ github.event.inputs.endTag }}" | sort -V | head -n 1)
           if [[ "${begin}" == "${{ github.event.inputs.startTag }}" ]]; then
@@ -44,8 +45,17 @@ jobs:
           fi
           echo "::notice::You told me to start with ${{ github.event.inputs.startTag }}"
           echo "::notice::I'm going to start with ${start}"
-          echo "::set-output name=startWith::"
+          echo "::set-output name=startWith::${start}"
           echo "::notice::You told me to end with ${{ github.event.inputs.endTag }}"
           echo "::notice::I'm going to end with ${end}"
+          echo"::set-output name=endWith::${end}"
 
+      - name: get tag list
+        id: taglist
+        run: |
+          start="${{ steps.determineDirection.outputs.startWith }}"
+          end="${{ steps.determineDirection.outputs.endWith }}"
+          additionalTags=$(git tag -l | sed -n "/${start}/,/${end}/p");
+          echo "list: ${list}"
+          echo "::set-output name=taglist::${list}
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
