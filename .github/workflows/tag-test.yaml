@@ -13,6 +13,10 @@ on:
         type: string
         default: '5.8.1'
 
+env:
+  GIT_EMAIL: ${{ secrets.GH_EMAIL }}
+  GIT_USER: ${{ secrets.GH_USER }}
+
 jobs:
   determine-tag-range:
     runs-on: ubuntu-latest
@@ -75,8 +79,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: ${{fromJSON(needs.determine-tag-range.outputs)}}
-        #tag: ["5.8.0", "5.8.1", "5.9.0"]
+        tag: ${{fromJSON(needs.determine-tag-range.outputs.tagList)}}
+        #tag: ["5.8.0", "5.8.1", "5.8.2", "5.8.3", "5.9.0"]
 
     steps:
       - name: Get the Repo
@@ -84,13 +88,59 @@ jobs:
       - name: fetch tags
         run: |
           git fetch --unshallow --tags
-      - name: does tag exist
+      - name: set git config
         run: |
-          if [ ! $(git tag -l "${{ matrix.tag }}") ]; then
-            echo "::error::The tag you want to activate does not exist. Verify the tag you've requested - ${{ matrix.tag }} - exists."
-            exit 1
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "$GIT_USER"
+
+      - name: cache config files
+        run: |
+          echo "::notice:: The tag we'll use is ${{ matrix.tag }}"
+          exit 1
+          #cp .platform.app.yaml ${TMPDIR}
+          #cp -r .platform ${TMPDIR}
+          #cp -r .muplugins ${TMPDIR}
+          #cp wp-config.php ${TMPDIR}
+          #cp composer.* ${TMPDIR}
+          # add .gitignnore
+          # add .blackfire.yaml
+          # add wp-cli.yml
+
+
+      - name: switch to branch
+        run: |
+          exit 1
+          if [[ !-f "${TMPDIR}.platform.app.yaml" ]]; then
+            echo "::error::platform config file isnt available"
+          exit 1
           else
-            echo "::notice::The tag ${{ matrix.tag }} exists and we can continue"
+            echo "::notice::Config file is here and ready to go"
           fi
+
+          git checkout -b "v${{ matrix.tag }}-test" ${{ matrix.tag }}
+      - name: restore config files
+        run: |
+          exit 1
+          if [[ ! -f ".platform.app.yaml" ]]; then
+            echo "::notice::Restoring platform configuration files"
+            cp "${TMPDIR}.platform.app.yaml" .
+            cp -r "${TMPDIR}.platform" .
+            cp -r "${TMPDIR}.muplugins" .
+            find ${TMPDIR} -type f -name "composer.*" -d 1 | xargs -I {} cp "{}" .
+            cp "${TMPDIR}wp-config.php" .
+            git add -A
+            git commit -m "Adding platform configuration files"
+            git push origin
+          fi
+
+      - name: add env var to enable testing
+        run: |
+          exit 1
+          printf "variables:\n  env:\n    PSI_TEST_ENABLED: %s\n    WP_TAG: %s\n" "true" "${{ matrix.tag }}" >> .platform.app.yaml
+          git add .platform.app.yaml
+          git commit -m "Adds environmental variables"
+          # @todo we also need to switch the theme to an older theme since older versions will not have twentytwentytwo
+          # for the last.commit : git rev-list -n 1 5.8.0
+
 
 
