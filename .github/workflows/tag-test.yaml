@@ -68,7 +68,7 @@ jobs:
           #additionalTags="${additionalTags//'%'/'%25'}"
           #additionalTags="${additionalTags//$'\n'/'%0A'}"
           #additionalTags="${additionalTags//$'\r'/'%0D'}"
-          echo "::set-output name=processTags::'${additionalTags}'"
+          echo "::set-output name=processTags::${additionalTags}"
           #echo "additionalTags post processing: ${additionalTags}"
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
 
