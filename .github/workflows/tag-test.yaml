@@ -16,6 +16,7 @@ on:
 env:
   GIT_EMAIL: ${{ secrets.GH_EMAIL }}
   GIT_USER: ${{ secrets.GH_USER }}
+  PSHCONFIG: ".platform.app.yaml,.platform,.muplugins,wp-config.php,composer.*,.gitignore,.blackfire.yaml,wp-cli.yml"
 
 jobs:
   determine-tag-range:
@@ -96,13 +97,17 @@ jobs:
       - name: cache config files
         run: |
           echo "::notice:: The tag we'll use is ${{ matrix.tag }}"
+          for item in ${PSHCONFIG//,/ }
+          do
+              echo "::notice::I would attempt to copy ${item}"
+          done
           exit 1
-          #cp .platform.app.yaml ${TMPDIR}
-          #cp -r .platform ${TMPDIR}
-          #cp -r .muplugins ${TMPDIR}
-          #cp wp-config.php ${TMPDIR}
-          #cp composer.* ${TMPDIR}
-          # add .gitignnore
+          cp .platform.app.yaml ${TMPDIR}
+          cp -r .platform ${TMPDIR}
+          cp -r .muplugins ${TMPDIR}
+          cp wp-config.php ${TMPDIR}
+          cp composer.* ${TMPDIR}
+          cp .gitignnore
           # add .blackfire.yaml
           # add wp-cli.yml
 
