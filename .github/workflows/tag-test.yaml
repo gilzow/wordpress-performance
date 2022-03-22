@@ -97,6 +97,9 @@ jobs:
       - name: cache config files
         run: |
           echo "::notice:: The tag we'll use is ${{ matrix.tag }}"
+          echo "contents of WORKSPACE"
+          ls -al $GITHUB_WORKSPACE
+          exit 1
           for item in ${PSHCONFIG//,/ }
           do
             echo "::notice::I would attempt to copy ${item}"
