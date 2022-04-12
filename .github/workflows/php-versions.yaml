@@ -1,0 +1,21 @@
+name: PF test of PHP versions against trunk
+on:
+  workflow_dispatch:
+    inputs:
+      startVersion:
+        description: 'PHP version to begin with'
+        required: true
+        default: '7.3'
+        type: string
+      endVersion:
+        description: 'PHP version to end with'
+        required: false
+        type: string
+        default: '8.1'
+jobs:
+  determine-valid-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Starting PHP version selected: ${{ github.event.inputs.startVersion }}"
+          echo "Ending PHP version selected: ${{ github.event.inputs.endVersion }}"
