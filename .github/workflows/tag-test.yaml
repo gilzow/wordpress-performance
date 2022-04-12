@@ -17,6 +17,7 @@ env:
   GIT_EMAIL: ${{ secrets.GH_EMAIL }}
   GIT_USER: ${{ secrets.GH_USER }}
   PSHCONFIG: ".platform.app.yaml,.platform,.muplugins,wp-config.php,composer.*,.gitignore,.blackfire.yaml,wp-cli.yml"
+  PSHCONFIGTMP: ".pshcnfgtmp"
 
 jobs:
   determine-tag-range:
@@ -73,6 +74,38 @@ jobs:
           #echo "additionalTags post processing: ${additionalTags}"
           #git tag -l | sed -n '/5.9.0/,/5.8.0/p'
 
+  save-psh-config-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the Repo
+        uses: actions/checkout@v2
+
+      - name: Create config tmp dir
+        run: |
+          if [[ ! -d "${PSHCONFIGTMP}" ]]; then
+            mkdir "${PSHCONFIGTMP}"
+          fi
+
+      - name: cache config files
+        run: |
+          for item in ${PSHCONFIG//,/ }
+          do
+            echo "::notice::I copying ${item}..."
+            if [[ -d "${item}" ]]; then
+              echo "::notice::${item} is a directory"
+              directory="jah"
+            fi
+
+            if [[ -f "${item}" || -n ${directory+x} ]]; then
+              echo "::notice::Copying ${item}..."
+              cp ${directory+ -R } "${item}" ${PSHCONFIGTMP}
+            fi
+          done
+      - name: store-config-files
+        uses: actions/upload-artifact@master
+        with:
+          name: psh-config-files
+          path: ${PSHCONFIGTMP}
   build-each-tag:
     needs: determine-tag-range
     runs-on: ubuntu-latest
@@ -86,37 +119,24 @@ jobs:
     steps:
       - name: Get the Repo
         uses: actions/checkout@v2
+
       - name: fetch tags
         run: |
           git fetch --unshallow --tags
+
       - name: set git config
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_USER"
 
-      - name: cache config files
-        run: |
-          echo "::notice:: The tag we'll use is ${{ matrix.tag }}"
-          echo "contents of WORKSPACE"
-          ls -al $GITHUB_WORKSPACE
-          exit 1
-          for item in ${PSHCONFIG//,/ }
-          do
-            echo "::notice::I would attempt to copy ${item}"
-            if [[ -d "${item}" ]]; then
-              echo "::notice::${item} is a directory"
-              directory="jah"
-            fi
-
-            if [[ -f "${item}" || -n ${directory+x} ]]; then
-              echo "::notice::Copying ${item}..."
-              cp ${directory+ -R } "${item}" ${TMPDIR}
-            fi
-          done
-
       - name: switch to branch
         run: |
           git checkout -b "v${{ matrix.tag }}-test" ${{ matrix.tag }}
+      - name: retrieve psh config files
+        uses: actions/download-artifact@v3
+        with:
+          name: psh-config-files
+          path: ${PSHCONFIGTMP}
       - name: restore config files
         run: |
           for item in ${PSHCONFIG//,/ }
@@ -125,20 +145,23 @@ jobs:
             itemexists=$?
             if (( 0 != itemexists )); then
               echo "::notice::${item} does not exist for this version."
-              if [[ -d "${TMPDIR}${item}" ]]; then
+              if [[ -d "${PSHCONFIGTMP}${item}" ]]; then
                 directory="jah"
               fi
 
-              if [[ -f "${TMPDIR}${item}" || -n ${directory+x} ]]; then
+              if [[ -f "${PSHCONFIGTMP}${item}" || -n ${directory+x} ]]; then
                 echo "::notice::Copying "${item}" back into repo root"
-                #cp ${directory+ -R } "${TMPDIR}${item}" .
+                cp ${directory+ -R } "${PSHCONFIGTMP}${item}" .
+                git add "${item}"
               fi
             fi
           done
+      - name: remove our config file storage area
+        run: |
+          rm -rf "${PSHCONFIGTMP}"
 
       - name: add env var to enable testing
         run: |
-          exit 1
           printf "variables:\n  env:\n    PSI_TEST_ENABLED: %s\n    WP_TAG: %s\n" "true" "${{ matrix.tag }}" >> .platform.app.yaml
           git add .platform.app.yaml
           git commit -m "Adds environmental variables"
@@ -148,9 +171,10 @@ jobs:
       - name: Commit configuration files
         run: |
           # this should check git status to see if we have changes to commit
-          #if [[ ! -f ".platform.app.yaml" ]]; then
-            #git add -A
-            #git commit -m "Adding platform configuration files"
-            #git push origin
-          #fi
+          commit=$(git diff --name-only --staged)
+          if [[ -n "${commit}" ]]; then
+            git commit -m "Adding platform configuration files"
+            git push origin
+          fi
+
 
