@@ -78,7 +78,7 @@ jobs:
           endWith="${{ steps.setVersionDirection.outputs.endWith }}"
           versions='${{ steps.getPhpVersions.outputs.phpVersions }}'
           # this is fun :D
-          versionRange=$(echo ${versions} | | jq -c --arg startv "${startWith}" --arg endv "${endWith}" '. as $collection | $collection | [index($startv,$endv)] as $indices | $collection | .[$indices[0]:($indices[1]+1)]')
+          versionRange=$(echo ${versions} | jq -c --arg startv "${startWith}" --arg endv "${endWith}" '. as $collection | $collection | [index($startv,$endv)] as $indices | $collection | .[$indices[0]:($indices[1]+1)]')
           echo "::notice::Selected PHP Range is ${versionRange}"
           echo "::set-output name=versionRange::${versionRange}"
 
