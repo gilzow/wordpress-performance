@@ -81,5 +81,19 @@ jobs:
           versionRange=$(echo ${versions} | jq -c --arg startv "${startWith}" --arg endv "${endWith}" '. as $collection | $collection | [index($startv,$endv)] as $indices | $collection | .[$indices[0]:($indices[1]+1)]')
           echo "::notice::Selected PHP Range is ${versionRange}"
           echo "::set-output name=versionRange::${versionRange}"
+  build-environments:
+    needs: determine-valid-versions
+    runs-on: ubuntu-latest
+    name: "Build environments for range of PHP Versions"
+    strategy:
+      fail-fast: false
+      matrix:
+        phpVersion: ${{ fromJSON(needs.determine-valid-versions.outputs.versionRange) }}
 
+    steps:
+      - name: Get the Repo
+        uses: actions/checkout@v2
+      - name: test version
+        run: |
+            echo "::notice I need to build an environment using php version ${{ matrix.phpVersion }}
 #make sure the matrix job depends/needs determine-valid-versions
