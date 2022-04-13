@@ -28,28 +28,17 @@ jobs:
           versionPrint=$(echo "${versions}" | jq 'join(", ")')
           echo "::set-output name=phpVersions::${versions}"
           echo "::set-output name=phpVersionsPrint::${versionPrint}"
-      - name: Verify inputs
-        id: verify-inputs
-        run: |
-          # start is requrired so we dont need to worry about it
-          pttrnValidVersion="^[0-9]\.[0-9]$"
-          if [[ ! ${{ github.event.inputs.endVersion }} =~ ${pttrnValidVersion} ]]; then
-            errMsg="Ending PHP version can not be left blank and must be a valid PHP version in the format MAJOR.MINOR "
-            errMsg+="(e.g. 7.4). Please make sure to enter a valid PHP version before rerunning this workflow."
-            echo "::error::${errMsg}"
-            exit 1
-          fi
       - name: Verify versions
         id: verifyPhpVersions
         run: |
           versions="${{ steps.getPhpVersions.outputs.phpVersions }}"
-
+          pttrnValidVersion="^[0-9]\.[0-9]$"
           for phpv in ${{ github.event.inputs.startVersion }} ${{ github.event.inputs.endVersion }}
           do
-          if [[ "${versions}" == *"${phpv}"* ]]; then
+          if [[ "${versions}" == *"${phpv}"* || ! ${phpv} =~ ${pttrnValidVersion} ]]; then
             errMsg= printf "The PHP version %s is not valid and/or supported. Please verify the version is one of the " "${phpv}"
             errMsg+="following before rerunning this workflow: "
-            errMsg=$(printf '%s%0A%s' "$errMsg" "${{ steps.getPhpVersions.outputs.phpVersionsPrint }}" )
+            errMsg=$(printf '%s%0A%s' "$errMsg" ${{ steps.getPhpVersions.outputs.phpVersionsPrint }} )
             echo "::error::${errMsg}"
             exit 1
           fi
