@@ -36,9 +36,11 @@ jobs:
           for phpv in ${{ github.event.inputs.startVersion }} ${{ github.event.inputs.endVersion }}
           do
           if [[ "${versions}" == *"${phpv}"* || ! ${phpv} =~ ${pttrnValidVersion} ]]; then
-            errMsg= printf "The PHP version %s is not valid and/or supported. Please verify the version is one of the " "${phpv}"
-            errMsg+="following before rerunning this workflow: "
-            errMsg=$(printf '%s%0A%s' "$errMsg" ${{ steps.getPhpVersions.outputs.phpVersionsPrint }} )
+            errMsg=$(printf "The PHP version %s is not valid and/or supported. Please verify the version is one of the " "${phpv}")
+            errMsg+="following before rerunning this workflow:"
+            errMsg=$(printf '%s\n%s' "$errMsg" ${{ steps.getPhpVersions.outputs.phpVersionsPrint }} )
+            # we have to encode new lines in order to output hem
+            errMsg="${errMsg//$'\n'/'%0A'}"
             echo "::error::${errMsg}"
             exit 1
           fi
