@@ -32,8 +32,11 @@ jobs:
         id: verify-inputs
         run: |
           # start is requrired so we dont need to worry about it
-          if [[ -z ${{ github.event.inputs.startVersion }} ]]; then
-            echo "::error::Starting PHP version can not be left blank. Please make sure to enter a valid PHP version before rerunning this workflow."
+          pttrnValidVersion="^[0-9]\.[0-9]$"
+          if [[ ! ${{ github.event.inputs.endVersion }} =~ ${pttrnValidVersion} ]]; then
+            errMsg="Ending PHP version can not be left blank and must be a valid PHP version in the format MAJOR.MINOR "
+            errMsg+="(e.g. 7.4). Please make sure to enter a valid PHP version before rerunning this workflow."
+            echo "::error::${errMsg}"
             exit 1
           fi
       - name: Verify versions
