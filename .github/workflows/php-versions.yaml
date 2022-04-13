@@ -95,5 +95,5 @@ jobs:
         uses: actions/checkout@v2
       - name: test version
         run: |
-            echo "::notice I need to build an environment using php version ${{ matrix.phpVersion }}
+            echo "::notice I need to build an environment using php version ${{ matrix.phpVersion }}"
 #make sure the matrix job depends/needs determine-valid-versions
