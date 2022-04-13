@@ -12,10 +12,68 @@ on:
         required: false
         type: string
         default: '8.1'
+
+env:
+  PHPLATEST: '8.1'
+
 jobs:
   determine-valid-versions:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Get supported versions
+        id: getPhpVersions
+        run: |
+          # -c in jq to compact output
+          versions=$(curl https://docs.platform.sh/registry/images/registry.json | jq -c '(.php.versions.deprecated + .php.versions.supported)')
+          versionPrint=$(echo "${versions}" | jq 'join(", ")')
+          echo "::set-output name=phpVersions::${versions}"
+          echo "::set-output name=phpVersionsPrint::${versionPrint}"
+      - name: Verify inputs
+        id: verify-inputs
+        run: |
+          # start is requrired so we dont need to worry about it
+          if [[ -z ${{ github.event.inputs.startVersion }} ]]; then
+            echo "::error::Starting PHP version can not be left blank. Please make sure to enter a valid PHP version before rerunning this workflow."
+            exit 1
+          fi
+      - name: Verify versions
+        id: verifyPhpVersions
+        run: |
+          versions="${{ steps.getPhpVersions.outputs.phpVersions }}"
+
+          for phpv in ${{ github.event.inputs.startVersion }} ${{ github.event.inputs.endVersion }}
+          do
+          if [[ "${versions}" == *"${phpv}"* ]]; then
+            errMsg= printf "The PHP version %s is not valid and/or supported. Please verify the version is one of the " "${phpv}"
+            errMsg+="following before rerunning this workflow: "
+            errMsg=$(printf '%s%0A%s' "$errMsg" "${{ steps.getPhpVersions.outputs.phpVersionsPrint }}" )
+            echo "::error::${errMsg}"
+            exit 1
+          fi
+          done
+
+      - name: Set version direction
+        id: setVersionDirection
+        run: |
           echo "Starting PHP version selected: ${{ github.event.inputs.startVersion }}"
           echo "Ending PHP version selected: ${{ github.event.inputs.endVersion }}"
+          # use https://docs.platform.sh/registry/images/registry.json for a list of php versions we support
+          # jq '.php.versions.deprecated + .php.versions.supported' <-- full list of possible versions
+          # if the endVersion is blank/empty/null, set it to PHPLATEST
+          # check if the begin tag is later than the end tag. if so, flip them
+          begin=$(printf '%s\n%s\n' "${{ github.event.inputs.startVersion }}" "${{ github.event.inputs.endVersion }}" | sort -V | head -n 1)
+          if [[ "${begin}" == "${{ github.event.inputs.startVersion }}" ]]; then
+            start="${{ github.event.inputs.startVersion }}"
+            end="${{ github.event.inputs.endVersion }}"
+          else
+            start="${{ github.event.inputs.endVersion }}"
+            end="${{ github.event.inputs.startVersion }}"
+          fi
+          echo "::notice::You told me to start with ${{ github.event.inputs.startVersion }}"
+          echo "::notice::I'm going to start with ${start}"
+          echo "::set-output name=startWith::${start}"
+          echo "::notice::You told me to end with ${{ github.event.inputs.endVersion }}"
+          echo "::notice::I'm going to end with ${end}"
+          echo "::set-output name=endWith::${end}"
+
+#make sure the matrix job depends/needs determine-valid-versions
