@@ -19,6 +19,8 @@ env:
 jobs:
   determine-valid-versions:
     runs-on: ubuntu-latest
+    outputs:
+      versionRange: ${{ steps.getVersionRange.outputs.versionRange }}
     steps:
       - name: Get supported versions
         id: getPhpVersions
@@ -69,5 +71,15 @@ jobs:
           echo "::notice::You told me to end with ${{ github.event.inputs.endVersion }}"
           echo "::notice::I'm going to end with ${end}"
           echo "::set-output name=endWith::${end}"
+      - name: get version range
+        id: getVersionRange
+        run: |
+          startWith="${{ steps.setVersionDirection.outputs.startWith }}"
+          endWith="${{ steps.setVersionDirection.outputs.endWith }}"
+          versions='${{ steps.getPhpVersions.outputs.phpVersions }}'
+          # this is fun :D
+          versionRange=$(echo ${versions} | | jq -c --arg startv "${startWith}" --arg endv "${endWith}" '. as $collection | $collection | [index($startv,$endv)] as $indices | $collection | .[$indices[0]:($indices[1]+1)]')
+          echo "::notice::Selected PHP Range is ${versionRange}"
+          echo "::set-output name=versionRange::${versionRange}"
 
 #make sure the matrix job depends/needs determine-valid-versions
